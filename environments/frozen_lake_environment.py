@@ -1,13 +1,13 @@
 import contextlib
 from itertools import product
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
+from environments.base_environment import Environment
+
+
 # Configures numpy print options
-from frozen_lake.environment import Environment
-
-
 @contextlib.contextmanager
 def _printoptions(*args, **kwargs):
     original = np.get_printoptions()
@@ -18,6 +18,7 @@ def _printoptions(*args, **kwargs):
         np.set_printoptions(**original)
 
 
+# actions are represented in integers
 ACTIONS = {
     0: (-1, 0),  # UP
     1: (0, -1),  # LEFT
@@ -25,8 +26,7 @@ ACTIONS = {
     3: (0, 1),  # RIGHT
 }
 
-# actions are represented in integers
-
+# tiles symbols
 GOAL_SYMBOL = '$'
 HOLE_SYMBOL = '#'
 FROZEN_SYMBOL = '.'
@@ -34,7 +34,7 @@ START_SYMBOL = '&'
 
 
 class FrozenLake(Environment):
-    def __init__(self, lake, slip, max_steps, seed=None):
+    def __init__(self, lake: List, slip: float, max_steps: int, seed: Optional[int] = None):
         """
         lake: A matrix that represents the lake. For example:
          lake =  [['&', '.', '.', '.'],
@@ -45,23 +45,11 @@ class FrozenLake(Environment):
         max_steps: The maximum number of time steps in an episode
         seed: A seed to control the random number generator (optional)
         """
-        # TODO : to delete, maybe we won't need seeding
-        # for debugging purposes, you need to sed random state every time when you want to generate random variables
-        # this way you will get the exact same random numbers, making debugging easier
-        # ex:
-        # rng = np.random.RandomState(0)
-        # rng.rand(4)
-        # # Out[1]: array([0.5488135 , 0.71518937, 0.60276338, 0.54488318])
-        # rng = np.random.RandomState(0)
-        # rng.rand(4)
-        # Out[2]: array([0.5488135 , 0.71518937, 0.60276338, 0.54488318])
         self.seed = seed
-        self.random_state = np.random.RandomState(self.seed)
+        self.seed_random_state()
 
-        # start (&), frozen (.), hole (#), goal ($)
         self.lake = np.array(lake)
         self.lake_flat = self.lake.reshape(-1)
-
         self.slip = slip
         self.max_steps = max_steps
 
@@ -78,37 +66,45 @@ class FrozenLake(Environment):
 
         # define the absorbing state: index and coordinates
         self.absorbing_state_idx = n_states - 1
-        self.absorbing_state_coord = (-1, -1)
 
         # indices to coordinates states representation
         self.indices_to_coords = list(product(range(self.lake.shape[0]), range(self.lake.shape[1])))
-        self.indices_to_coords.append(self.absorbing_state_coord)
+        # add additional coordinates to represent the absorbing state, an out of grid coordination (-1,-1)
+        self.indices_to_coords.append((-1, -1))
         # coordinates to  indices states representation
         self.coords_to_indices = {coord: index for (index, coord) in enumerate(self.indices_to_coords)}
 
         # initiate transition probabilities:
-        # for each possible state s to each possible state s' through each possible action a
+        # for each possible state `s` to each possible state `s'` through each possible action `a`
         self.transition_probabilities = np.zeros((n_states, n_states, self.n_actions))
 
-        self.set_deterministic_transition_probabilities()
+        # set the probabilities deterministically
+        self.set_transitioning_probabilities()
 
-    def set_deterministic_transition_probabilities(self):
-        # model the environment deterministically
-        # transition_probabilities is a 3D array of size (number_of_states, number_of_states, number_of_actions)
-        # for example, small frozen lake: 4x4 -> 17 states (plus absorbing state), so teh array size is [17,17,4]
+    def set_transitioning_probabilities(self):
+        """
+        Calculate the 3D matrix of probabilities of transitioning to state `s'` from state `s` through action `a`
+        The 3D matrix is contains the combination of the following order:
+        [next_state, current_state, action]
+        The states' indices are from 0 to the lake_size + 1, the last state being the absorbing state
+        The action indices are 0, 1, 2, 3 corresponding to UP, LEFT, DOWN and RIGHT respectively
+        :return:
+        """
+        # Example, small frozen lake: 4x4 -> 16+1 states (plus absorbing state), so the 3D array size is [17,17,4]
         # each cell in the array represents the probability of transitioning from state s to state s' under action a
 
         # get all final states, the GOAL and HOLE states which should transition the agent to the absorbing state
         final_states_indices = self.get_states_indices_by_symbol(GOAL_SYMBOL, HOLE_SYMBOL)
         # also add the absorbing state index, because it is a finale state, and you can't get out of it
         final_states_indices.append(self.absorbing_state_idx)
+        # the probability of any action when the final_states_indices is being the current state is 1.0
 
         for _state_idx, _state_coords in enumerate(self.indices_to_coords):
             # 1. for ANY action, whenever the current state `s` is final [GOAL, HOLE, ABSORBING]
-            # the next state `s'` is the ABSORBING state, the probability of taking that action is 1
+            # the next state `s'` is the ABSORBING state, the probability of taking that action is 1.0
             if _state_idx in final_states_indices:
                 for _action in ACTIONS.keys():
-                    # next state, state, action
+                    # next state, current state, action
                     self.transition_probabilities[self.absorbing_state_idx, _state_idx, _action] = 1.0
 
             # 2. for all other states [FROZEN, START], we calculate the probability of taking an action `a`
@@ -128,10 +124,10 @@ class FrozenLake(Environment):
                     self.transition_probabilities[next_desired_state_idx, _state_idx, _action] = 1 - self.slip
 
                     # the rest of probability (10% chance of slipping) should be split over the four possible directions
-                    # "the agent slips (moves one tile in a random direction, which may be the desired direction)"
+                    # "the agent slips (moves one tile in a random direction, `which may be the desired direction`)"
 
-                    # So we need to find all corresponding next state for all actions
-                    # and set a portion of the split probability to it
+                    # So we need to find all corresponding next states for all actions
+                    # and set a portion of the slip probability to each action
                     all_possible_next_states = []
                     # iterate over all action, and find all possible next positions
                     for _action_idx, _action_value in ACTIONS.items():
@@ -140,16 +136,17 @@ class FrozenLake(Environment):
                         _next_state_idx = self.coords_to_indices.get(_next_state_coords, _state_idx)
                         all_possible_next_states.append(_next_state_idx)
 
-                    # for the each possible action in this state, set the probability of transitioning to their
-                    # corresponding next state equal to the slip probability divided between all these possible actions
+                    # for each possible action in this current state, set a potion of the slip to be
+                    # the probability of transitioning to their corresponding next state through the taken action
                     for _possible_next_state in all_possible_next_states:
                         _p = self.slip / len(all_possible_next_states) if len(all_possible_next_states) > 0 else 0
-                        # here we are accumulating the probability because when slipping,
-                        # we might move using the desired direction, so we dont want to override the probability value
-                        # set above `next_desired_state_idx`, we add on it
+                        # here we are accumulating the probabilities for each combination
+                        # because when slipping, we might move using the desired direction
+                        # so we dont want to override the probability value set above `next_desired_state_idx`
+                        # hence, we add on it
                         self.transition_probabilities[_possible_next_state, _state_idx, _action] += _p
 
-    def get_states_indices_by_symbol(self, *symbols) -> List[int]:
+    def get_states_indices_by_symbol(self, *symbols: str) -> List[int]:
         """
         Takes a one or multiple symbols and return an array of indices of the symbol state
         :param symbols: only allowed '$', '.', '#', '&'
@@ -165,21 +162,55 @@ class FrozenLake(Environment):
             indices.extend(np.where(self.lake_flat == _symbol)[0].astype(int))
         return indices
 
-    def step(self, action):
+    def step(self, action: int):
         state, reward, done = Environment.step(self, action)
         done = (state == self.absorbing_state_idx) or done
         return state, reward, done
 
-    def p(self, next_state, state, action):
-        # returns the probability of transitioning from `state` to `next_state` through `action`
-        return self.transition_probabilities[state, next_state, action]
+    def p(self, next_state: int, state: int, action: int) -> float:
+        """
+        Calculate the single probability of transitioning from `state` to `next_state` through `action`
+        :param next_state:
+        :param state:
+        :param action:
+        :return:
+        """
+        return self.transition_probabilities[next_state, state, action]
 
-    def r(self, next_state, state, action):
+    def r(self, next_state: int, state: int, action: int) -> int:
+        """
+        Calculate the single reward of transitioning from `state` to `next_state` through `action`
+        :param next_state:
+        :param state:
+        :param action:
+        :return:
+        """
         reward = 0
-        # if the current state is goal, the reward is 1, for an other state, reward is 0
+        # if the current state is goal, the reward is 1, for any other state, reward is 0
         if state == self.get_states_indices_by_symbol(GOAL_SYMBOL)[0]:
             reward = 1
         return reward
+
+    def seed_random_state(self, seed: Optional[int] = None) -> None:
+        """
+        Set the random state to use it whenever you want to deal with random variables
+        :param seed: Optional, an int to seed the random state, if not given, will use the one that initiates this env
+        :return:
+        """
+        # for debugging purposes, you need to seed random state every time when you want to generate random variables
+        # this way you will get the exact same random numbers, making debugging easier
+        # ex:
+        # rng = np.random.RandomState(0)
+        # rng.rand(4)
+        # # Out[1]: array([0.5488135 , 0.71518937, 0.60276338, 0.54488318])
+        # rng = np.random.RandomState(0)
+        # rng.rand(4)
+        # Out[2]: array([0.5488135 , 0.71518937, 0.60276338, 0.54488318])
+        # same output everytime
+        if not seed:
+            seed = self.seed
+        self.random_state = np.random.RandomState(seed)
+        return None
 
     def render(self, policy=None, value=None):
         if policy is None:

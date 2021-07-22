@@ -1,8 +1,7 @@
-from frozen_lake.frozen_lake_environment import FrozenLake
-
-from frozen_lake.non_tabular_model_free_algorithms import linear_q_learning, linear_sarsa, LinearWrapper
-from frozen_lake.tabular_model_free_algorithms import q_learning, sarsa
-from frozen_lake.tabular_nodel_based_algorithms import value_iteration, policy_iteration
+from environments.frozen_lake_environment import FrozenLake
+from rl_algorithms.non_tabular_model_free import LinearWrapper, linear_sarsa, linear_q_learning
+from rl_algorithms.tabular_model_based import policy_iteration, value_iteration
+from rl_algorithms.tabular_model_free import sarsa, q_learning
 
 
 def main():
@@ -15,6 +14,7 @@ def main():
             ['#', '.', '.', '$']]
 
     env = FrozenLake(lake, slip=0.1, max_steps=16, seed=seed)
+    play(env)
 
     # print('# Model-based algorithms')
     # gamma = 0.9
