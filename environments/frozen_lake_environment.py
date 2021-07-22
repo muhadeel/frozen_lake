@@ -78,7 +78,7 @@ class FrozenLake(Environment):
         # for each possible state `s` to each possible state `s'` through each possible action `a`
         self.transition_probabilities = np.zeros((n_states, n_states, self.n_actions))
 
-        # set the probabilities deterministically
+        # set the probabilities stochastically
         self.set_transitioning_probabilities()
 
     def set_transitioning_probabilities(self):
@@ -116,7 +116,8 @@ class FrozenLake(Environment):
                     # calculate the new coordinates according to the taken action
                     current_state_coord = self.indices_to_coords[_state_idx]
                     next_state_coords = tuple(np.add(current_state_coord, ACTIONS[_action]))
-                    # if next_state_coords are invalid (outside the lake grid), next_state_idx will be the current
+                    # if next_state_coords are invalid (outside the lake grid), next_desired_state_idx will be the
+                    # current state (_state_idx)
                     next_desired_state_idx = self.coords_to_indices.get(next_state_coords, _state_idx)
 
                     # the agent can take this action with a probability of slipping into other directions
@@ -136,7 +137,7 @@ class FrozenLake(Environment):
                         _next_state_idx = self.coords_to_indices.get(_next_state_coords, _state_idx)
                         all_possible_next_states.append(_next_state_idx)
 
-                    # for each possible action in this current state, set a potion of the slip to be
+                    # for each possible action in this current state, set a portion of the slip to be
                     # the probability of transitioning to their corresponding next state through the taken action
                     for _possible_next_state in all_possible_next_states:
                         _p = self.slip / len(all_possible_next_states) if len(all_possible_next_states) > 0 else 0
