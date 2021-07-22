@@ -1,5 +1,3 @@
-################ Non-tabular model-free algorithms ################
-
 import numpy as np
 
 

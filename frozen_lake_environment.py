@@ -20,9 +20,9 @@ def _printoptions(*args, **kwargs):
 
 ACTIONS = {
     0: (-1, 0),  # UP
-    1: (1, 0),  # DOWN
-    2: (0, -1),  # RIGHT
-    3: (0, 1),  # LEFT
+    1: (0, -1),  # LEFT
+    2: (1, 0),  # DOWN
+    3: (0, 1),  # RIGHT
 }
 
 # actions are represented in integers
@@ -108,7 +108,8 @@ class FrozenLake(Environment):
             # the next state `s'` is the ABSORBING state, the probability of taking that action is 1
             if _state_idx in final_states_indices:
                 for _action in ACTIONS.keys():
-                    self.transition_probabilities[_state_idx, self.absorbing_state_idx, _action] = 1.0
+                    # next state, state, action
+                    self.transition_probabilities[self.absorbing_state_idx, _state_idx, _action] = 1.0
 
             # 2. for all other states [FROZEN, START], we calculate the probability of taking an action `a`
             # and the next possible state s'
@@ -124,7 +125,7 @@ class FrozenLake(Environment):
 
                     # the agent can take this action with a probability of slipping into other directions
                     # so it can't take this action 100%, if slipping chance is 10%, it can take it 90% of the times
-                    self.transition_probabilities[_state_idx, next_desired_state_idx, _action] = 1 - self.slip
+                    self.transition_probabilities[next_desired_state_idx, _state_idx, _action] = 1 - self.slip
 
                     # the rest of probability (10% chance of slipping) should be split over the four possible directions
                     # "the agent slips (moves one tile in a random direction, which may be the desired direction)"
@@ -146,7 +147,7 @@ class FrozenLake(Environment):
                         # here we are accumulating the probability because when slipping,
                         # we might move using the desired direction, so we dont want to override the probability value
                         # set above `next_desired_state_idx`, we add on it
-                        self.transition_probabilities[_state_idx, _possible_next_state, _action] += _p
+                        self.transition_probabilities[_possible_next_state, _state_idx, _action] += _p
 
     def get_states_indices_by_symbol(self, *symbols) -> List[int]:
         """

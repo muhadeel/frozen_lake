@@ -1,5 +1,3 @@
-################ Tabular model-free algorithms ################
-
 import numpy as np
 
 
