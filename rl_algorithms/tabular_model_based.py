@@ -61,7 +61,35 @@ def value_iteration(env, gamma, theta, max_iterations, value=None):
     else:
         value = np.array(value, dtype=np.float)
 
-    # TODO:
-    policy = None
+    policy = np.zeros(env.n_states, dtype = int)
+
+    delta = abs(theta)+1  # Force the loop entry
+    i = 0
+    while (delta > theta and i < max_iterations):
+        delta = 0
+        for state in range(env.n_states):
+            value_old = value[state]
+            value_new = []
+            for action in range(env.n_actions):
+                value_tmp = 0
+                for ns in range(env.n_states):
+                    value_tmp += env.p(ns, state, action=action) * (
+                        (env.r(ns, state, action=action)) + (gamma * value[ns]))
+                value_new.append(value_tmp)
+
+            value[state] = max(value_new)
+            delta = max(delta, np.abs(value_old - value[state]))
+        i += 1
+
+    for state in range(env.n_states):
+        new_actions = []
+        new_action_values = []
+        for action in range(env.n_actions):
+            for ns in range(env.n_states):
+                new_actions.append(action)
+                new_action_values.append(env.p(ns, state, action=action) * (
+                            (env.r(ns, state, action=action)) + (gamma * value[ns])))
+        best_action = new_actions[new_action_values.index(max(new_action_values))]
+        policy[state] = best_action
 
     return policy, value

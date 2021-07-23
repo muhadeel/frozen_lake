@@ -16,28 +16,6 @@ def main():
     env = FrozenLake(lake, slip=0.1, max_steps=16, seed=seed)
     # play(env)
 
-    # ------Test Pol Eval---------#
-    # print("EVALUATE INITIAL POLICY")
-    # gamma = 0.9
-    # theta = 0.001
-    # max_iterations = 100
-    # polTest = [3,3,2,1,2,2,2,2,3,3,2,2,2,3,3,3,3]
-    # value = policy_evaluation(env,polTest,gamma, theta, max_iterations)
-    # env.render(polTest,value)
-    #-----------------------------#
-
-    # ------Test Pol Improvement---------#
-    # print("\nIMPROVE POLICY")
-    # gamma = 0.9
-    # theta = 0.001
-    # max_iterations = 100
-    # polTest = [3,3,2,1,2,2,2,2,3,3,2,2,2,3,3,3,3]
-    # new_pol = policy_improvement(env,polTest,value,gamma)
-    # print("new policy:", new_pol)
-    # new_value = policy_evaluation(env,new_pol[0],gamma, theta, max_iterations)
-    # env.render(new_pol[0],new_value)
-    #-----------------------------#
-
 
     print('# Model-based algorithms')
     gamma = 0.9
@@ -47,17 +25,15 @@ def main():
     print('')
 
     print('## Policy iteration')
-    # polTest = [3, 3, 2, 1, 2, 2, 2, 2, 3, 3, 2, 2, 2, 3, 3, 3, 3]
-    # policy, value = policy_iteration(env, gamma, theta, max_iterations,polTest)
     policy, value = policy_iteration(env, gamma, theta, max_iterations)
     env.render(policy, value)
-    #
-    # print('')
-    #
-    # print('## Value iteration')
-    # policy, value = value_iteration(env, gamma, theta, max_iterations)
-    # env.render(policy, value)
-    #
+
+    print('')
+
+    print('## Value iteration')
+    policy, value = value_iteration(env, gamma, theta, max_iterations)
+    env.render(policy, value)
+
     # print('')
 
     # print('# Model-free algorithms')
