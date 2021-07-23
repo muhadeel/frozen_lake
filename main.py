@@ -1,32 +1,38 @@
+from datetime import datetime
+
 from environments.frozen_lake_environment import FrozenLake
 from rl_algorithms.non_tabular_model_free import LinearWrapper, linear_sarsa, linear_q_learning
 from rl_algorithms.tabular_model_based import policy_iteration, value_iteration
 from rl_algorithms.tabular_model_free import sarsa, q_learning
-from rl_algorithms.tabular_model_based import policy_evaluation, policy_improvement  # test, remove when done
+from rl_algorithms.tabular_model_based import policy_evaluation, policy_improvement
 
 
 def run_forzen_lake_rl(lake, seed=0):
     env = FrozenLake(lake, slip=0.1, max_steps=16, seed=seed)
     # play(env)
 
-    print('# Model-based algorithms')
+    print('# Model-based algorithms\n')
     gamma = 0.9
     theta = 0.001
     max_iterations = 100
 
-    print('')
-
     print('## Policy iteration')
+    start_time = datetime.now()
+
     policy, value = policy_iteration(env, gamma, theta, max_iterations)
     env.render(policy, value)
 
-    print('')
+    end_time = datetime.now()
+    print(f'Duration: {end_time - start_time}\n')
 
     print('## Value iteration')
+    start_time = datetime.now()
+
     policy, value = value_iteration(env, gamma, theta, max_iterations)
     env.render(policy, value)
 
-    # print('')
+    end_time = datetime.now()
+    print(f'Duration: {end_time - start_time}\n')
 
     # print('# Model-free algorithms')
     # max_episodes = 2000

@@ -103,13 +103,19 @@ def policy_iteration(env, gamma, theta, max_iterations, policy=None) -> Tuple[np
     # if policy is not passed, initialized it
     policy = np.zeros(env.n_states, dtype=int) if policy is None else np.array(policy, dtype=int)
 
+    # keep track of number of iterations
+    iteration = 0
+
     while True:
         # evaluate the policy first
         value = policy_evaluation(env, policy, gamma, theta, max_iterations)
         # make improvement, `policy_stable` will be True when there is no further change on policy
         policy, policy_stable = policy_improvement(env, policy, value, gamma)
+        iteration += 1
         if policy_stable:
             break
+
+    print(f"Number of iterations required in `policy iteration`: {iteration}")
 
     return policy, value
 
@@ -131,9 +137,9 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
     policy = np.zeros(env.n_states, dtype=int)
 
     delta = abs(theta) + 1  # Force the loop entry
-    i = 0
+    iteration = 0
     # repeat until change in value is below the threshold or the max iterations reached
-    while delta > theta and i < max_iterations:
+    while delta > theta and iteration < max_iterations:
         delta = 0
         for state in range(env.n_states):
             old_value = value[state]
@@ -155,7 +161,7 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
             value[state] = max(new_value)
             # calculate the difference to see if the threshold is reached
             delta = max(delta, np.abs(old_value - value[state]))
-        i += 1
+        iteration += 1
 
     # now find the best action and add it to the policy
     for state in range(env.n_states):
@@ -173,5 +179,7 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
         # choose the best action that gives the maximum value
         best_action = new_actions[new_action_values.index(max(new_action_values))]
         policy[state] = best_action
+
+    print(f"Number of iterations required in `value iteration`: {iteration}")
 
     return policy, value
