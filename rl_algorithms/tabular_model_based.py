@@ -57,6 +57,7 @@ def policy_improvement(env, policy, value, gamma) -> Tuple[np.array, bool]:
     """
     # initialize with zeros
     improved_policy = np.zeros(env.n_states, dtype=int)
+    # boolean used to keep track if the policy is improved or not
     policy_stable = True
 
     # iterate over each state
@@ -77,9 +78,9 @@ def policy_improvement(env, policy, value, gamma) -> Tuple[np.array, bool]:
 
         # choose the action that leads to maximum reward
         best_action = new_actions[new_action_values.index(max(new_action_values))]
-
         improved_policy[state] = best_action
-        # if there is no change, the policy is not stable
+
+        # if there is change, the policy is still not stable, we need to keep improving, set `policy_stable` False
         if old_action != best_action:  # and state != env.absorbing_state_idx:
             policy_stable = False
 
@@ -102,13 +103,13 @@ def policy_iteration(env, gamma, theta, max_iterations, policy=None) -> Tuple[np
     # if policy is not passed, initialized it
     policy = np.zeros(env.n_states, dtype=int) if policy is None else np.array(policy, dtype=int)
 
-    # a boolean represents if there is a change in the new policy or not, i.e. if the policy keeps improving
-    improved = True
-    while improved:
+    while True:
         # evaluate the policy first
         value = policy_evaluation(env, policy, gamma, theta, max_iterations)
-        # make improvement, `improved` will be False when there is no further change on policy
-        policy, improved = policy_improvement(env, policy, value, gamma)
+        # make improvement, `policy_stable` will be True when there is no further change on policy
+        policy, policy_stable = policy_improvement(env, policy, value, gamma)
+        if policy_stable:
+            break
 
     return policy, value
 
