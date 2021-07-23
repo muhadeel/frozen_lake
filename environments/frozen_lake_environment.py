@@ -221,7 +221,8 @@ class FrozenLake(Environment):
 
             print(lake.reshape(self.lake.shape))
         else:
-            actions = ['^', '_', '<', '>']
+            # actions = ['^', '_', '<', '>']
+            actions = ['^', '<', '_', '>']  #Corrected action array
 
             print('Lake: ')
             print(self.lake)
