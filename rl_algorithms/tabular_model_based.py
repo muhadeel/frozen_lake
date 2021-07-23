@@ -34,7 +34,7 @@ def policy_improvement(env, policy, value, gamma):
                             (env.r(ns, state, action=action)) + (gamma * value[ns])))
         best_action = new_actions[new_action_values.index(max(new_action_values))]
         improved_policy[state] = best_action
-        if old_action != best_action: # and state != env.absorbing_state_idx:
+        if old_action != best_action:  # and state != env.absorbing_state_idx:
             policy_stable = False
 
     return improved_policy, policy_stable
