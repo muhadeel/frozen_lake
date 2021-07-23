@@ -27,17 +27,17 @@ def policy_evaluation(env, policy, gamma, theta, max_iterations) -> np.array:
         # iterate through each state
         for state in range(env.n_states):
             old_value = value[state]
-            expected_value = 0
+            total_expected_return = 0
             # try all possible actions that can be taken from this state
             for next_state in range(env.n_states):
                 # probability of transitioning to this next state
                 next_state_probability = env.p(next_state, state, action=policy[state])
-                # calculate the value of this next state
-                next_state_value = env.r(next_state, state, action=policy[state]) + (gamma * value[next_state])
-                # calculate the expected value
-                expected_value += next_state_probability * next_state_value
+                # calculate the discounted reward
+                discounted_reward = env.r(next_state, state, action=policy[state]) + (gamma * value[next_state])
+                # calculate the expected return
+                total_expected_return += next_state_probability * discounted_reward
             # record the new expected state
-            value[state] = expected_value
+            value[state] = total_expected_return
             # calculate the difference to see if the threshold is reached
             delta = max(delta, np.abs(old_value - value[state]))
         i += 1
@@ -72,9 +72,9 @@ def policy_improvement(env, policy, value, gamma) -> Tuple[np.array, bool]:
                 new_actions.append(action)
                 # probability of transitioning to this next state
                 next_state_probability = env.p(next_state, state, action=action)
-                # calculate the value of this next state
-                next_state_value = env.r(next_state, state, action=action) + (gamma * value[next_state])
-                new_action_values.append(next_state_probability * next_state_value)
+                # calculate the discounted reward
+                discounted_reward = env.r(next_state, state, action=action) + (gamma * value[next_state])
+                new_action_values.append(next_state_probability * discounted_reward)
 
         # choose the action that leads to maximum reward
         best_action = new_actions[new_action_values.index(max(new_action_values))]
@@ -139,17 +139,17 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
             old_value = value[state]
             new_value = []
             for action in range(env.n_actions):
-                expected_value = 0
+                total_expected_return = 0
                 for next_state in range(env.n_states):
                     # probability of transitioning to this next state
                     next_state_probability = env.p(next_state, state, action=action)
-                    # calculate the value of this next state
-                    next_state_value = env.r(next_state, state, action=action) + (gamma * value[next_state])
+                    # calculate the discounted reward
+                    discounted_reward = env.r(next_state, state, action=action) + (gamma * value[next_state])
                     # accumulate for each next state
-                    expected_value += next_state_probability * next_state_value
+                    total_expected_return += next_state_probability * discounted_reward
 
                 # add this action expected value for all next states
-                new_value.append(expected_value)
+                new_value.append(total_expected_return)
 
             # choose the best value
             value[state] = max(new_value)
@@ -165,11 +165,11 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
             for next_state in range(env.n_states):
                 # probability of transitioning to this next state
                 next_state_probability = env.p(next_state, state, action=action)
-                # calculate the value of this next state
-                next_state_value = env.r(next_state, state, action=action) + (gamma * value[next_state])
+                # calculate the discounted reward
+                discounted_reward = env.r(next_state, state, action=action) + (gamma * value[next_state])
                 # add the action and its value
                 new_actions.append(action)
-                new_action_values.append(next_state_probability * next_state_value)
+                new_action_values.append(next_state_probability * discounted_reward)
         # choose the best action that gives the maximum value
         best_action = new_actions[new_action_values.index(max(new_action_values))]
         policy[state] = best_action
