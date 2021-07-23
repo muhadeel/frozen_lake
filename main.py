@@ -2,20 +2,12 @@ from environments.frozen_lake_environment import FrozenLake
 from rl_algorithms.non_tabular_model_free import LinearWrapper, linear_sarsa, linear_q_learning
 from rl_algorithms.tabular_model_based import policy_iteration, value_iteration
 from rl_algorithms.tabular_model_free import sarsa, q_learning
-from rl_algorithms.tabular_model_based import policy_evaluation,policy_improvement  #test, remove when done
+from rl_algorithms.tabular_model_based import policy_evaluation, policy_improvement  # test, remove when done
 
-def main():
-    seed = 0
 
-    # Small lake
-    lake = [['&', '.', '.', '.'],
-            ['.', '#', '.', '#'],
-            ['.', '.', '.', '#'],
-            ['#', '.', '.', '$']]
-
+def run_forzen_lake_rl(lake, seed=0):
     env = FrozenLake(lake, slip=0.1, max_steps=16, seed=seed)
     # play(env)
-
 
     print('# Model-based algorithms')
     gamma = 0.9
@@ -93,4 +85,19 @@ def play(env):
 
 
 if __name__ == '__main__':
-    main()
+    # Small lake
+    small_lake = [['&', '.', '.', '.'],
+                  ['.', '#', '.', '#'],
+                  ['.', '.', '.', '#'],
+                  ['#', '.', '.', '$']]
+    # Big lake
+    big_lake = [['&', '.', '.', '.', '.', '.', '.', '.'],
+                ['.', '.', '.', '.', '.', '.', '.', '.'],
+                ['.', '.', '.', '#', '.', '.', '.', '.'],
+                ['.', '.', '.', '.', '.', '#', '.', '.'],
+                ['.', '.', '.', '#', '.', '.', '.', '.'],
+                ['.', '#', '#', '.', '.', '.', '#', '.'],
+                ['.', '#', '.', '.', '#', '.', '#', '.'],
+                ['.', '.', '.', '#', '.', '.', '.', '$']]
+
+    run_forzen_lake_rl(lake=small_lake, seed=0)
