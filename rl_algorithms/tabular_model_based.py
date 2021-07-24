@@ -98,7 +98,7 @@ def policy_iteration(env, gamma, theta, max_iterations, policy=None) -> Tuple[np
     :param theta: a tolerance threshold, once the threshold reached, the evaluation will stop
     :param max_iterations: maximum number of iterations to avoid letting the program run indefinitely
     :param policy: optional, an array of size n_states of policy π
-    :return: a tuple of the optimal policy array and value function for each state
+    :return: a tuple of the optimal policy array and value function for each state according to policy iteration
     """
     # if policy is not passed, initialized it
     policy = np.zeros(env.n_states, dtype=int) if policy is None else np.array(policy, dtype=int)
@@ -129,7 +129,7 @@ def value_iteration(env, gamma, theta, max_iterations, value=None) -> Tuple[np.a
     :param theta: a tolerance threshold, once the threshold reached, the evaluation will stop
     :param max_iterations: maximum number of iterations to avoid letting the program run indefinitely
     :param value:
-    :return: an array of the expected value
+    :return: a tuple of the optimal policy array and value function for each state according to value iteration
     """
     # initialize with zeros if value is not passed
     value = np.zeros(env.n_states) if value is None else np.array(value, dtype=np.float)
