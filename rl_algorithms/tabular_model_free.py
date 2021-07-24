@@ -1,6 +1,9 @@
-from typing import Tuple
-
 import numpy as np
+
+from rl_algorithms.tabular_model_based import policy_evaluation
+
+# used to compare model free algorithms' policy value with the policy_evaluation value
+DIFFERENCE_TOLERANCE = 0.005
 
 
 def e_greedy(epsilon: float, q: np.array, action: int):
@@ -9,7 +12,7 @@ def e_greedy(epsilon: float, q: np.array, action: int):
     :param epsilon: the current exploration factor
     :param q: an array of `action value function` for each action at the current state
     :param action: the action index
-    :return:
+    :return: an int represents the action chosen by the e-greedy algorithm
     """
     # initiate a random state
     rng = np.random.default_rng()
@@ -25,14 +28,16 @@ def e_greedy(epsilon: float, q: np.array, action: int):
         return rng.choice(action)
 
 
-def sarsa(env, max_episodes: int, eta: float, gamma: float, epsilon: float, seed=None) -> Tuple[np.array, np.array]:
+def sarsa(env, max_episodes: int, eta: float, gamma: float, epsilon: float, optimal_value: np.array, seed=None):
     """
-    Implement sarsa algorithm to find the optimal policy
+    Implement `sarsa control` algorithm to find the optimal policy
     :param env: initialized frozen lake environment
     :param max_episodes: max number of episodes
     :param eta: an initial learning rate
     :param gamma: discount factor
     :param epsilon: an initial exploration factor
+    :param optimal_value: an array of the value of the optimal policy, according to policy iteration
+                          used to compare if sarsa reached the optimal policy or not
     :param seed: (optional) seed that controls the pseudorandom number generator
     :return: a tuple of the optimal policy array and value function for each state according to sarsa algorithm
     """
@@ -66,21 +71,36 @@ def sarsa(env, max_episodes: int, eta: float, gamma: float, epsilon: float, seed
             state = next_state
             action = next_action
 
-    # update policy and value by taking the maximum value
-    policy = q.argmax(axis=1)
-    value = q.max(axis=1)
+        # update policy and value by taking the maximum value
+        policy = q.argmax(axis=1)
+        value = q.max(axis=1)
 
+        # evaluate this policy using `policy evaluation`
+        value_from_policy_eval = policy_evaluation(env, policy, gamma, theta=0.001, max_iterations=100)
+
+        # compare the obtained values from policy evaluation and the values from sarsa
+        # if the difference is very small (difference is within 0.01 for each value)
+        # then this is the optimal policy, not need to continue the episodes, return this policy and its value
+        differences = abs(value_from_policy_eval - optimal_value)
+        if np.sum(differences) < DIFFERENCE_TOLERANCE * (env.n_states - 1):  # exclude absorbing state -> always 0
+            print('Number of Q-learning Control episodes to reach optimal policy: ', str(i + 1))
+            return policy, value
+
+    # if we reached this part of code, that means we did not find the optimal policy and all the episodes are consumed
+    print(f'All the {max_episodes} episodes are consumed, Sarsa Control did not reach an optimal policy.')
     return policy, value
 
 
-def q_learning(env, max_episodes: int, eta: float, gamma: float, epsilon: float, seed=None) -> Tuple[np.array, np.array]:
+def q_learning(env, max_episodes: int, eta: float, gamma: float, epsilon: float, optimal_value: np.array, seed=None):
     """
-    Implement q-learning algorithm to find the optimal policy
+    Implement `q-learning control` algorithm to find the optimal policy
     :param env: initialized frozen lake environment
     :param max_episodes: max number of episodes
     :param eta: an initial learning rate
     :param gamma: discount factor
     :param epsilon: an initial exploration factor
+    :param optimal_value: an array of the value of the optimal policy, according to policy iteration
+                              used to compare if sarsa reached the optimal policy or not
     :param seed: (optional) seed that controls the pseudorandom number generator
     :return: a tuple of the optimal policy array and value function for each state according to q-learning algorithm
     """
@@ -111,8 +131,21 @@ def q_learning(env, max_episodes: int, eta: float, gamma: float, epsilon: float,
             # update the current state
             state = next_state
 
-    # update policy and value by taking the maximum value
-    policy = q.argmax(axis=1)
-    value = q.max(axis=1)
+        # update policy and value by taking the maximum value
+        policy = q.argmax(axis=1)
+        value = q.max(axis=1)
 
+        # evaluate this policy using `policy evaluation`
+        value_from_policy_eval = policy_evaluation(env, policy, gamma, theta=0.001, max_iterations=100)
+
+        # compare the obtained values from policy evaluation and the values from sarsa
+        # if the difference is very small (difference is within 0.01 for each value)
+        # then this is the optimal policy, not need to continue the episodes, return this policy and its value
+        differences = abs(value_from_policy_eval - optimal_value)
+        if np.sum(differences) < DIFFERENCE_TOLERANCE * (env.n_states - 1):  # exclude absorbing state -> always 0
+            print('Number of Q-learning Control episodes to reach optimal policy: ', str(i + 1))
+            return policy, value
+
+    # if we reached this part of code, that means we did not find the optimal policy and all the episodes are consumed
+    print(f'All the {max_episodes} episodes are consumed, Q-learning Control did not reach an optimal policy.')
     return policy, value

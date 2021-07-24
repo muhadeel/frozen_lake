@@ -19,8 +19,8 @@ def run_forzen_lake_rl(lake, seed=0):
     print('## Policy iteration')
     start_time = datetime.now()
 
-    policy, value = policy_iteration(env, gamma, theta, max_iterations)
-    env.render(policy, value)
+    optimal_policy, optimal_value = policy_iteration(env, gamma, theta, max_iterations)
+    env.render(optimal_policy, optimal_value)
 
     end_time = datetime.now()
     print(f'Duration: {end_time - start_time}\n')
@@ -42,13 +42,13 @@ def run_forzen_lake_rl(lake, seed=0):
     print('')
 
     print('## Sarsa')
-    policy, value = sarsa(env, max_episodes, eta, gamma, epsilon, seed=seed)
+    policy, value = sarsa(env, max_episodes, eta, gamma, epsilon, optimal_value, seed=seed)
     env.render(policy, value)
 
     print('')
 
     print('## Q-learning')
-    policy, value = q_learning(env, max_episodes, eta, gamma, epsilon, seed=seed)
+    policy, value = q_learning(env, max_episodes, eta, gamma, epsilon, optimal_value, seed=seed)
     env.render(policy, value)
 
     print('')
