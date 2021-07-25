@@ -1,5 +1,5 @@
 import numpy as np
-
+from rl_algorithms.tabular_model_free import e_greedy
 
 class LinearWrapper:
     def __init__(self, env):
@@ -44,33 +44,52 @@ class LinearWrapper:
 
 def linear_sarsa(env, max_episodes, eta, gamma, epsilon, seed=None):
     random_state = np.random.RandomState(seed)
-
     eta = np.linspace(eta, 0, max_episodes)
     epsilon = np.linspace(epsilon, 0, max_episodes)
-
     theta = np.zeros(env.n_features)
 
     for i in range(max_episodes):
         features = env.reset()
 
-        q = features.dot(theta)
+        q = np.inner(features,theta)    # For all actions: Q(a) ← 􏰀􏰀􏰀Sum-i θi φ(s, a)i
+        # Select an action according to an e-greedy policy
+        action = e_greedy(epsilon[i], q, env.n_actions)
+        terminal_state = False
 
-        # TODO:
-
+        while not terminal_state:
+            # r ← observed reward for action a at state s, s′ ← observed next state for action a at state s
+            next_state,reward,terminal_state = env.step(action)
+            td = reward - q[action]                   # Temporal difference δ ← r − Q(a')
+            q = np.inner(next_state,theta)            # For all actions: Q(a′) ← 􏰀􏰀􏰀Sum-i θi φ(s′, a′)i
+            # Select an action according to an e-greedy policy
+            next_action = e_greedy(epsilon[i], q, env.n_actions)
+            td += gamma * max(q)                      # δ ← δ + γ max_a′Q(a′)
+            theta += eta[i] * td * features[action]   # θ ← θ + αδφ(s, a)
+            features = next_state                     # s ← s′
+            action = next_action                      # a ← a′
     return theta
 
 
 def linear_q_learning(env, max_episodes, eta, gamma, epsilon, seed=None):
-    random_state = np.random.RandomState(seed)
 
+    random_state = np.random.RandomState(seed)
     eta = np.linspace(eta, 0, max_episodes)
     epsilon = np.linspace(epsilon, 0, max_episodes)
-
     theta = np.zeros(env.n_features)
 
     for i in range(max_episodes):
         features = env.reset()
+        q = np.inner(features,theta)    # For all actions: Q(a) ← 􏰀􏰀􏰀Sum-i θi φ(s, a)i
+        terminal_state = False
 
-        # TODO:
-
+        while not terminal_state:
+            # Select an action according to an e-greedy policy
+            action = e_greedy(epsilon[i],q,env.n_actions)
+            # r ← observed reward for action a at state s, s′ ← observed next state for action a at state s
+            next_state,reward,terminal_state = env.step(action)
+            td = reward - q[action]                   # Temporal difference δ ← r − Q(a)
+            q = np.inner(next_state,theta)            # For all actions: Q(a′) ← 􏰀􏰀􏰀Sum-i θi φ(s′, a′)i
+            td += gamma * max(q)                      # δ ← δ + γ max_a′Q(a′)
+            theta += eta[i] * td * features[action]   # θ ← θ + αδφ(s, a)
+            features = next_state                     # s ← s′
     return theta

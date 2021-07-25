@@ -53,23 +53,23 @@ def run_forzen_lake_rl(lake, seed=0):
 
     print('')
 
-    # linear_env = LinearWrapper(env)
-    #
-    # print('## Linear Sarsa')
-    #
-    # parameters = linear_sarsa(linear_env, max_episodes, eta,
-    #                           gamma, epsilon, seed=seed)
-    # policy, value = linear_env.decode_policy(parameters)
-    # linear_env.render(policy, value)
-    #
-    # print('')
-    #
-    # print('## Linear Q-learning')
-    #
-    # parameters = linear_q_learning(linear_env, max_episodes, eta,
-    #                                gamma, epsilon, seed=seed)
-    # policy, value = linear_env.decode_policy(parameters)
-    # linear_env.render(policy, value)
+    linear_env = LinearWrapper(env)
+
+    print('## Linear Sarsa')
+
+    parameters = linear_sarsa(linear_env, max_episodes, eta,
+                              gamma, epsilon, seed=seed)
+    policy, value = linear_env.decode_policy(parameters)
+    linear_env.render(policy, value)
+
+    print('')
+
+    print('## Linear Q-learning')
+
+    parameters = linear_q_learning(linear_env, max_episodes, eta,
+                                   gamma, epsilon, seed=seed)
+    policy, value = linear_env.decode_policy(parameters)
+    linear_env.render(policy, value)
 
 
 def play(env):

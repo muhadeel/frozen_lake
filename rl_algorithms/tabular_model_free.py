@@ -83,7 +83,7 @@ def sarsa(env, max_episodes: int, eta: float, gamma: float, epsilon: float, opti
         # then this is the optimal policy, not need to continue the episodes, return this policy and its value
         differences = abs(value_from_policy_eval - optimal_value)
         if np.sum(differences) < DIFFERENCE_TOLERANCE * (env.n_states - 1):  # exclude absorbing state -> always 0
-            print('Number of Q-learning Control episodes to reach optimal policy: ', str(i + 1))
+            print('Number of Sarsa Control episodes to reach optimal policy: ', str(i + 1))
             return policy, value
 
     # if we reached this part of code, that means we did not find the optimal policy and all the episodes are consumed
