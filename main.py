@@ -1,10 +1,10 @@
+import argparse
 from datetime import datetime
 
 from environments.frozen_lake_environment import FrozenLake
 from rl_algorithms.non_tabular_model_free import LinearWrapper, linear_sarsa, linear_q_learning
 from rl_algorithms.tabular_model_based import policy_iteration, value_iteration
 from rl_algorithms.tabular_model_free import sarsa, q_learning
-from rl_algorithms.tabular_model_based import policy_evaluation, policy_improvement
 
 
 def run_forzen_lake_rl(lake, seed=0):
@@ -106,4 +106,16 @@ if __name__ == '__main__':
                 ['.', '#', '.', '.', '#', '.', '#', '.'],
                 ['.', '.', '.', '#', '.', '.', '.', '$']]
 
-    run_forzen_lake_rl(lake=small_lake, seed=0)
+    # arg parser to choose which lake to run
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-l",
+        "--lake",
+        help="Choose which lake to run: `small` for small lake OR `big` for big lake, default: small",
+        choices=['small', 'big'],
+        default='small')
+    args = parser.parse_args()
+    lake = big_lake if args.lake == 'big' else small_lake
+
+    # run reinforcement learning methods on the chosen lake
+    run_forzen_lake_rl(lake=lake)
