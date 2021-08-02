@@ -7,7 +7,7 @@ from rl_algorithms.tabular_model_based import policy_iteration, value_iteration
 from rl_algorithms.tabular_model_free import sarsa, q_learning
 
 
-def run_forzen_lake_rl(lake, seed=0):
+def run_frozen_lake_rl(lake, seed=0):
     env = FrozenLake(lake, slip=0.1, max_steps=16, seed=seed)
     # play(env)
 
@@ -118,4 +118,4 @@ if __name__ == '__main__':
     lake = big_lake if args.lake == 'big' else small_lake
 
     # run reinforcement learning methods on the chosen lake
-    run_forzen_lake_rl(lake=lake)
+    run_frozen_lake_rl(lake=lake)
