@@ -17,6 +17,7 @@ frozen_lake
 │   └── tabular_model_free.py
 └── .gitignore
 └── main.py
+└── output.md
 └── README.md
 ```
 
@@ -35,6 +36,9 @@ frozen_lake
 
 
 - The python script `main.py` is an implementation of running the frozen lake environment using all the implemented reinforcement learning methods with two possible versions **Small Lake and Big Lake**.
+
+
+- output.md, a file that shows the result of running the main with `small` frozen lake settings.
 
 
 - README.md, a read me file for this project.
