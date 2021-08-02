@@ -15,7 +15,6 @@ frozen_lake
 │   └── non_tabular_model_free.py
 │   └── tabular_model_based.py
 │   └── tabular_model_free.py
-└── .gitignore
 └── main.py
 └── output.md
 └── README.md
